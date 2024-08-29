@@ -1,0 +1,6 @@
+model_name: "sd-v2.1-base-4view"
+n_view: 4
+recon_std_rescale: 0.5
+ckpt: null #"/home/dycpu3_8tssd/jch/exps/sdguider/all_100k_pairs/checkpoint0005.pth"
+camera_condition_type: rotation
+guidance_scale: 50.
