@@ -71,7 +71,6 @@ class StableDiffusionPromptProcessor(PromptProcessor):
 
     @staticmethod
     def spawn_func(pretrained_model_name_or_path, prompts, cache_dir):
-        print(prompts)
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path, subfolder="tokenizer"
@@ -90,8 +89,6 @@ class StableDiffusionPromptProcessor(PromptProcessor):
                 return_tensors="pt",
             )
             text_embeddings = text_encoder(tokens.input_ids.to(text_encoder.device))[0]
-            # text_embeddings: 10, 77, 1024
-            # tokens.input_ids: 10, 77
 
         for prompt, embedding in zip(prompts, text_embeddings):
             torch.save(
