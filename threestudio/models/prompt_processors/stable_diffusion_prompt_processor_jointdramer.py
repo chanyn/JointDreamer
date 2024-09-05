@@ -5,6 +5,13 @@ from threestudio.utils.typing import *
 from threestudio.models.prompt_processors.stable_diffusion_prompt_processor import StableDiffusionPromptProcessor
 from threestudio.models.prompt_processors.base import PromptProcessorOutput
 from threestudio.utils.misc import barrier
+import os
+
+def hash_prompt(model: str, prompt: str) -> str:
+    import hashlib
+
+    identifier = f"{model}-{prompt}"
+    return hashlib.md5(identifier.encode()).hexdigest()
 
 @threestudio.register("stable-diffusion-prompt-processor-jointdreamer")
 class StableDiffusionPromptProcessorJD(StableDiffusionPromptProcessor):
@@ -15,7 +22,20 @@ class StableDiffusionPromptProcessorJD(StableDiffusionPromptProcessor):
     cfg: Config
 
     def configure(self) -> None:
+        self._cache_dir = ".threestudio_cache/text_embeddings"  # FIXME: hard-coded path
+        self.empty_prompt = ""
+        cache_path = os.path.join(
+            self._cache_dir,
+            f"{hash_prompt(self.cfg.pretrained_model_name_or_path, self.empty_prompt)}.pt",
+        )
+        if not os.path.exists(cache_path):
+            self.spawn_func(
+                self.cfg.pretrained_model_name_or_path,
+                [self.empty_prompt],
+                self._cache_dir,
+            )
         super().configure()
+
 
     def load_text_embeddings(self):
         # synchronize, to ensure the text embeddings have been computed and saved to cache
@@ -32,7 +52,6 @@ class StableDiffusionPromptProcessorJD(StableDiffusionPromptProcessor):
         )
 
         # record empty text embeddings
-        self.empty_prompt = ""
         self.empty_prompts_vd = [self.empty_prompt for _ in self.directions]
 
         self.empty_text_embeddings = self.load_from_cache(self.empty_prompt)[
