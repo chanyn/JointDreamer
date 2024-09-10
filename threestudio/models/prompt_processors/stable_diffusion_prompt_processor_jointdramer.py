@@ -28,6 +28,7 @@ class StableDiffusionPromptProcessorJD(StableDiffusionPromptProcessor):
             self._cache_dir,
             f"{hash_prompt(self.cfg.pretrained_model_name_or_path, self.empty_prompt)}.pt",
         )
+        os.makedirs(self._cache_dir, exist_ok=True)
         if not os.path.exists(cache_path):
             self.spawn_func(
                 self.cfg.pretrained_model_name_or_path,
